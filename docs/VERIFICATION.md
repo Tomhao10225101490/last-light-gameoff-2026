@@ -9,8 +9,8 @@
 
 ## Honest limits
 
-The agent can trigger audio and inspect synthesis/output samples, but the current tools do not provide auditory perception of computer playback. A full subjective headphone listen has **not** been verified. Therefore “close your eyes and it sounds hand-made,” perceived loudness matching and final musical taste are not claimed as accepted. The offline WAV is provided for that review.
+The agent triggered audio and inspected the synthesis/output samples. The user also played the online version and explicitly reported: “声音正常，听感满意” (audio is normal and the listening experience is satisfactory). This is user verification; the agent does not claim to have heard computer playback itself. Headphone use was not independently confirmed. The offline WAV remains available for detailed listening review.
 
 No promotional video or synthetic narration was created. No video listening or pronunciation check is claimed. Touch controls and cross-browser/mobile behavior are implemented but have not been tested on physical mobile devices. The three floors share their core traversal geometry; art, narrative and ambience differ.
 
-itch.io initially returned HTTP 429 in the user's Chrome. Submission status must be recorded separately from implementation completion.
+itch.io initially returned HTTP 429; access later recovered. The user verified the account email. The HTML5 ZIP, cover and four screenshots uploaded successfully; the page was made public. Native Chrome verification of the itch.io embed confirmed start, movement, task pickup, day/night shift and M mute. See SUBMISSION_RECEIPT.md for final jam status.

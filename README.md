@@ -10,6 +10,8 @@ You are the last janitor in a building that changes after dark. Close the boiler
 
 ## Play
 
+**[Play in your browser](https://tomhao.itch.io/last-light)** · **[Official Game Off entry](https://itch.io/jam/game-off-2026/rate/5327077)**
+
 No runtime dependencies, network requests, accounts or downloads. Serve `dist/` with any static server:
 
 ```sh
