@@ -1,0 +1,6 @@
+node_modules/
+.DS_Store
+.openai/
+outputs/
+media/*-4x.png
+media/audio-review.wav

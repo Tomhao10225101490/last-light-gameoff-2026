@@ -1,0 +1,11 @@
+{
+  "duration": 32,
+  "sampleRate": 44100,
+  "peak": 0.6399021744728088,
+  "peakDb": -3.8777282807582796,
+  "rms": 0.028417032940886544,
+  "clippedSamples": 0,
+  "nonFiniteSamples": 0,
+  "firstInvalidSeconds": -0.000022675736961451248,
+  "subjectiveListening": "Not verified by the agent; requires headphone review."
+}
