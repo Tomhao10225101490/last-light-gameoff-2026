@@ -1,55 +1,80 @@
 # LAST LIGHT · One More Shift
+## 《最后一盏灯：再值一班》
 
-Everybody went home. The building didn’t.
+**Local release candidate: `2.0.0-rc.1`. Expanded gameplay and both endings verified; subjective listening and external-device review remain unverified.**
 
-You are the last janitor in a building that changes after dark. Close the boiler valves, leave Gary his forgotten lunch, water the rooftop plants — and find your way home. A small puzzle platformer for **GitHub Game Off 2026: SHIFT**.
+Eli is a living adult returning to finish a handover. Day is 17:59 before the fire; night is what remained at 18:00. Twelve years ago Gary returned to release the fire doors, but the register incorrectly said he had already evacuated. The task is to acknowledge the person the record omitted—not to kill an evil Gary.
 
-![Last Light](media/cover.png)
+![Expanded development composition](media/cover.png)
 
-**Theme:** change the day/night shift with the Shift key. Gold machinery works by day; blue shadow bridges exist at night. The same melody and building have two rhythms.
-
-## Play
-
-**[Play in your browser](https://tomhao.itch.io/last-light)** · **[Official Game Off entry](https://itch.io/jam/game-off-2026/rate/5327077)**
-
-No runtime dependencies, network requests, accounts or downloads. Serve `dist/` with any static server:
-
-```sh
-python3 -m http.server 8786 -d dist
-```
-
-Open http://localhost:8786. Modern Chrome, Edge, Firefox or Safari with Canvas 2D and WebAudio. Audio begins after your first click. English and Chinese story text, touch controls, local progress, forgiving checkpoints, coyote time and jump buffering.
-
-- **A/D or ←/→:** move
-- **Space / W / ↑:** jump; release for a shorter jump
-- **Shift / X / the Shift button:** change the building
-- **E / ↓:** use the elevator after all three tasks
-- **M:** mute; **Esc:** pause. Losing focus pauses and mutes automatically.
-
-A first playthrough is intended to take about 5–8 minutes; this is a design estimate, not a measured user study.
-
-## The craft
-
-All artwork is drawn in code at 480×270 and scaled with nearest-neighbor sampling. Materials use four-step colored ramps and upper-left lighting. Bolts streak rust downwards; dust rests on top edges. Boiler, office and roof dressing share a palette. The janitor has four idle phases with a blink, six run phases, distinct ascent/descent poses, two landing squash phases and delayed cap/keychain motion. Far skyline, middle machinery and near pipes scroll independently. Night adds lamp pools, headlamp light and a glowing exit.
-
-All audio is synthesized locally. `audio.js` contains a tiny kick/tick/clunk/whirr/buzz/slurp kit, surface-aware randomized footsteps, one-second shift sound, floor ambience and micro-events. Day and night use the same composition with two arrangements. Phase gains crossfade over 0.18 seconds, music ducks 3 dB during the shift and door, and the exit has a 0.3-second near-silence setup. A compressor and limiter follow the master gain.
-
-## Source and verification
-
-`dist/core.js` is the deterministic physics model. `dist/game.js` owns input, story, tasks, saves and transitions. `dist/art.js` and `dist/audio.js` own the visual and sound direction. `tests/` covers the actual staircase, bridges, landing, coyote time and safe spawns.
+## Play locally
 
 ```sh
 npm ci
-npm test
-npm run check
-node scripts/render-media.mjs
-node scripts/render-audio.mjs
+npm start
 ```
 
-Development tools are optional; players download only the static files in `dist/`. The media scripts render actual game artwork and an offline audio review, not fake gameplay footage. See [verification](docs/VERIFICATION.md).
+Open **http://127.0.0.1:8786/**. Any static server can serve `dist/`. No runtime libraries, accounts, remote assets or network services are needed. Native resolution remains **480×270**, with unchanged **14×28** player collision and normal camera scale.
 
-## Credits and AI disclosure
+**Existing saves:** pre-expansion saves are backed up and continue on their original compatible maps. To enter the expanded game from an old save, choose **Restart shift** at the bottom of the page; the existing save is backed up first. Fresh saves enter the expansion automatically. Do not clear local storage to migrate.
 
-Created for this jam in November 2026 with AI assistance for programming, procedural pixel artwork, synthesized music/SFX, English/Chinese writing and testing. The pixel art is code-authored; it is **not claimed to be manually hand-pixelled by a human**. No external art, samples, fonts, recorded voices, testimonials or pre-existing game code are included. The story is fictional. All source and original game content are offered under the MIT license. Development package licenses remain with their authors.
+- A/D or arrows: move; hold C for quiet walking.
+- Space / W / up: jump; release early for a short jump.
+- Shift / X: switch memories. E / down: work, clues, doors, exit light.
+- J: journal. M: mute. Esc: pause/resume. Touch controls remain available.
+- Settings adjust master/music/SFX volume and reduce flash effects.
+- Scenes advance automatically. E can advance a beat after its minimum animation time; the departure has a longer minimum so its actors can finish leaving.
 
-Author / entrant: Tomhao10225101490. No impersonation or synthetic narration.
+## Expanded chapters
+
+Each chapter now contains **six separately authored sections**, connected by collision-aware, staged doors:
+
+- **Boiler:** duty rooms, loading passage, steam hall, cooling shaft, return inspection bridge, main valve hall.
+- **Office:** lift lobby, work maze, archive mezzanine, pantry, fire corridor, Gary’s office.
+- **Roof:** machine room, water tower, greenhouse, exterior inspection route, antenna bridges, exit beacon.
+
+Each section spans 1920×1620 at the original scale, with horizontal galleries, explicitly placed stairwells, observation balconies, split-phase crossings, solid machinery, warned timed hazards, named lamps and powered return routes. Work persists through death and chapter return. Camera movement is genuinely two-axis; bounds alone are not counted as exploration.
+
+The reproducible space audit uses the **actual archived local 4200/4550/4900 baseline**, never the old 1450-wide ZIP. It unions phase duplicates, excludes empty bounds and moving-platform sweep, subtracts machine-occupied standing intervals, and counts only physics-graph-reached surfaces. Qualifying occupied-screen ratios are **16.0× / 16.0× / 14.4×**; standing-interval ratios are **19.99× / 19.56× / 18.97×**. Definitions, conservative baseline denominator and limitations: `docs/LEVEL_DESIGN.md`, `docs/evidence/expanded/space-summary.json`. Numeric density is not a substitute for subjective route/art quality review.
+
+## Story, animation and sound
+
+- Eighteen work mechanisms and bilingual sequences: pressure release, restored machinery, corrected register, ringing phone, Gary holding the fire release while people escape, lunchbox sliding through the gap, water/plant changes, and a five-second-warned final pursuit.
+- Normal and complete endings have staged departure animations. The complete ending requires all six evidence records, the corrected register and the independently powered exit lamp. Harmless memory figures are separate from lethal enemy collision.
+- Three HP; ordinary immunity; ghost/abyss instant death; idempotent dying and separate safe lamp reassembly. Inactive phase platforms draw no pixels or hints and have no collision.
+- Chapter/section material families, distinct memory actors, readable warning states, continuity across scene beats, and visible abyss death at deep camera positions.
+- 120.32-second synth arrangement cycle, section variation, phase/chapter timbres, narrative ducking, pursuit and resolution layers, spatial alerts and separate mix controls. The actual 136-second review render has zero clipped/non-finite samples. **It has not been subjectively listened to.**
+
+## Verification
+
+Both **fresh-game → normal ending** and **fresh-game → complete ending** passed through real Chrome mouse/keyboard input, with **zero deaths in each run**. These were not coordinate/save-injected runs. A genuine completed browser profile was then reopened, revisited, switched to Chinese, journal-checked and reloaded successfully. Input/action logs, runtime hashes and real scene/ending screenshots are preserved in `docs/evidence/expanded/`.
+
+**52 tests pass**, covering retained-map compatibility and expanded-world behaviour. See `docs/TEST_REPORT.md` and `docs/PLAYTHROUGH.md` for exact evidence and earlier failures.
+
+```sh
+npm test
+npm run check
+npm run test:space                 # conservative physics-component space audit
+npm run test:browser               # smoke/layout, not whole-game proof
+npm run test:playthrough           # bounded expanded normal-ending input run
+ENDING=complete npm run test:playthrough
+npm run test:revisit               # uses the preceding completed test profile
+node scripts/verify-evidence.mjs   # rejects stale checked-in RC evidence
+node scripts/render-audio.mjs      # numeric synth review, not a listening test
+node scripts/render-media.mjs      # explicitly controlled composition previews
+npm run package                   # local RC archives only; never publishes
+```
+
+Chrome defaults to the macOS installation; override `CHROME`. Playtests stop at three deaths, a stalled-goal bound or their overall deadline. Test browsers now close gracefully so the harness does not damage its own profile storage.
+
+## Packages and remaining review
+
+`releases/last-light-2.0.0-rc.1-html5.zip` contains the actual playable root `index.html`. The matching source ZIP includes runtime, source, tests, documentation and evidence. Runtime members are byte-compared; exact hashes are in `releases/SHA256.json` and its versioned copy.
+
+Still unverified: subjective headphone/speaker listening, physical touch devices, full Firefox/Safari runs, full-map target-device performance and external final art/design sign-off. Desktop/headless smoke and numeric audio checks are not those reviews. This is a release candidate, not a fabricated all-platform sign-off.
+
+Historical root jam ZIPs, dev.1 archives, [itch.io game](https://tomhao.itch.io/last-light), [jam entry](https://itch.io/jam/game-off-2026/rate/5327077) and the existing `LAST_LIGHT_trailer.mp4` have not been replaced or publicly republished.
+
+## Credits and disclosure
+
+Created with AI assistance for code, procedural pixel art, synthesized music/SFX, writing and testing. No claim of hand-pixelled art, recorded voices, personal testimony or measured human impact. No external runtime artwork, fonts or audio samples. Fictional characters/events; no voice impersonation or synthetic narration. Original source/content use MIT; dependency licenses remain their owners’. Author / entrant: Tomhao10225101490.

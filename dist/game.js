@@ -1,53 +1,78 @@
-import {Art} from './art.js';import {Sound} from './audio.js';import {level,createPlayer,stepPlayer,intersects} from './core.js';
-const $=id=>document.getElementById(id), canvas=$('game'),art=new Art(canvas),sound=new Sound();
-const copy={en:{floors:['THE BOILER ROOM','GARY’S OFFICE','THE ROOFTOP'],short:['CLOSE THE VALVES. LET THE BUILDING REST.','LEAVE GARY HIS LUNCH. HE’LL BE BACK.','WATER THE PLANTS. THEN GO HOME.'],cards:['The building can breathe.','Somebody will notice.','You can go home now.'],story:['Three valves. One very tired boiler. Switch to night to cross the blue bridge.','Gary left in a hurry. His lunch is still here. Leave it by his door.','Nobody put “water the plants” in your contract. You brought the can anyway.'],item:[['One less hiss. The boiler settles.','The upper valve is closed. A little quieter.','Last valve. Even a building needs its rest.'],['A note for Gary: “Your lunch is by the door.”','Paperwork squared away. Tomorrow starts easier.','Lunch saved. Small things count.'],['A little water for the first pot.','New leaves. Someone’s been trying.','Last plant watered. The city is waiting.']],need:'Three small things first. Then the door.',stair:'Gold steps: DAY. Blue steps: NIGHT. Shift while you jump.',hazard:'Daytime machinery bites. At night it rests.',death:'Take a breath. Your small kindnesses are safe.',exit:'[E] Finish the handover',pause:'Take your time.',pauseCopy:'The building can wait.<br>Your place is saved on this device.',resume:'BACK TO THE SHIFT',end:'You left a light on.<br>For somebody else.',endCopy:'The boiler is quiet. Gary’s lunch is waiting.<br>The plants will see another morning.<br><br>Nothing spectacular. Just a good night’s work.<br>Now, go home.',endHint:'THANK YOU FOR STAYING A LITTLE LATE.',next:'NEXT FLOOR',retry:'ONE MORE SHIFT',start:'CLOCK IN',introTitle:'One last thing.<br>Then you can go.',introCopy:'A valve left open. Gary’s forgotten lunch.<br>A plant nobody remembers to water.<br>Three floors. A few small kindnesses.<br>And a building that changes after dark.',hint:'HEADPHONES RECOMMENDED · ABOUT 5–8 MINUTES'},zh:{floors:['锅炉房','GARY 的办公室','屋顶花园'],short:['关好阀门，让大楼也歇一歇。','给 GARY 留下午餐，他明天会回来。','浇好植物，该回家了。'],cards:['大楼终于松了一口气。','总会有人注意到。','现在，你可以回家了。'],story:['三个阀门，一台疲惫的锅炉。按 Shift 切到夜晚，走过蓝色桥梁。','Gary 走得匆忙，把午饭忘在了这里。顺手帮他放好吧。','合同里没写要浇花。但你还是带来了水壶。'],item:[['少了一声嘶响，锅炉安静了一些。','高处的阀门关好了，又安静了一点。','最后一个阀门。大楼也需要休息。'],['留个便条：“你的午饭在门口。”','整理好的文件，会让明天轻松一点。','午饭收好了，小事也值得认真。'],['给第一个花盆一点水。','长出新叶了，总有人在用心。','最后一盆也浇好了。城市在等你。']],need:'先做完三件小事，再下班。',stair:'金色台阶属于白天，蓝色台阶属于夜晚。在空中按 Shift。',hazard:'白天的机器还在运转，夜晚它们才会休息。',death:'喘口气吧，已经做好的事不会丢失。',exit:'[E] 完成交班',pause:'不着急，歇一会儿。',pauseCopy:'大楼可以等一等。<br>进度已保存在这台设备上。',resume:'继续值班',end:'你为别人<br>留下了一盏灯。',endCopy:'锅炉安静了，Gary 的午饭收好了。<br>植物还会迎来下一个清晨。<br><br>没有什么惊天动地，只是好好做完了一夜的工作。<br>现在，回家吧。',endHint:'谢谢你，愿意多留一会儿。',next:'去上一层',retry:'再值一次班',start:'开始值班',introTitle:'再做一件小事。<br>然后就回家。',introCopy:'忘关的阀门，Gary 落下的午饭。<br>一盆没人记得浇水的植物。<br>三层楼，几件小小的好事。<br>天黑之后，大楼也变了模样。',hint:'推荐佩戴耳机 · 约 5–8 分钟'}};
-let saved=null;try{saved=JSON.parse(localStorage.getItem('last-light-v1'));}catch{}
-if(saved?.finished)saved=null;
-const state={floor:Math.max(0,Math.min(2,Number(saved?.floor)||0)),time:0,night:true,phaseMix:1,camera:0,player:createPlayer(),platforms:[],items:[],particles:[],mode:'menu',message:'',messageTimer:0,flash:0,soundFlash:0,transition:0,muted:false,lang:saved?.lang==='zh'?'zh':'en',short:'',shortZh:'',deaths:0,shifts:0};
-let keys=new Set(),jumpPressed=false,jumpReleased=false,shiftCooldown=0,footDistance=0,lastTime=0,exitTimer=-1,stairHint=false,hazardHint=false,completionTimer=0;
-const text=()=>copy[state.lang];
-function save(){try{localStorage.setItem('last-light-v1',JSON.stringify({floor:state.floor,got:state.items.map(i=>i.got),lang:state.lang,finished:state.mode==='won'}));}catch{}}
-function notify(s,d=4){state.message=s;state.messageTimer=d;}
-function updateLabels(){const t=text();$('floor-label').textContent=`0${state.floor+1} / ${t.floors[state.floor]}`;$('phase-label').textContent=state.lang==='zh'?(state.night?'夜班 · 18:00':'日班 · 17:59'):(state.night?'NIGHT SHIFT · 18:00':'DAY SHIFT · 17:59');$('phase-label').style.color=state.night?'#a8c4ce':'#eab86e';state.short=copy.en.short[state.floor];state.shortZh=copy.zh.short[state.floor];$('language').textContent=state.lang==='en'?'中文':'EN';$('tagline').innerHTML=state.lang==='en'?'Everybody went home.<br>The building didn’t.':'大家都回家了。<br>大楼还没有。';$('under-title').textContent=state.lang==='en'?'Leave it a little better.':'走之前，让这里好一点。';$('under-copy').innerHTML=state.lang==='en'?'Some paths only exist when the lights go out.<br>Some things are worth staying a little late for.':'有些路，熄灯后才看得见。<br>有些小事，值得多留一会儿。';$('aside-copy').innerHTML=state.lang==='en'?'Same building. Two rhythms.<br><b>Find the space between them.</b>':'同一栋楼，两种节奏。<br><b>找到它们之间的空隙。</b>';}
-function setupFloor(restore=false){state.platforms=level(state.floor);state.items=[{x:173,y:211,kind:state.floor===0?'valve':state.floor===2?'water':'note'},{x:626,y:110,kind:state.floor===0?'valve':'note'},{x:1012,y:176,kind:state.floor===0?'valve':state.floor===1?'lunch':'water'}].map((i,k)=>({...i,got:!!(restore&&saved?.got?.[k])}));state.player=createPlayer();state.camera=0;state.night=false;state.phaseMix=0;state.particles=[];state.transition=0;exitTimer=-1;stairHint=false;hazardHint=false;sound.setFloor(state.floor);sound.setPhase(false);updateLabels();}
-function card(title,body,button,hint=''){ $('overlay').classList.remove('hidden');$('card-title').innerHTML=title;$('card-copy').innerHTML=body;$('start').innerHTML=`${button}<span>↗</span>`;$('start-hint').textContent=hint;}
-function menu(){const t=text();card(t.introTitle,t.introCopy,saved&&!saved.finished?t.resume:t.start,t.hint);}
-setupFloor(true);state.night=true;state.phaseMix=1;state.camera=260;state.player.x=580;state.player.y=200;updateLabels();menu();
-async function activate(){await sound.start();if(state.mode==='won'){saved=null;state.floor=0;setupFloor();}else if(state.mode==='between'){state.floor++;setupFloor();}else if(state.mode==='menu'){setupFloor(true);}state.mode='playing';sound.menu=false;sound.setPhase(state.night);$('overlay').classList.add('hidden');canvas.focus({preventScroll:true});notify(text().story[state.floor],7);save();}
-$('start').addEventListener('click',activate);
-function setPause(){if(state.mode==='playing'){state.mode='paused';keys.clear();card(text().pause,text().pauseCopy,text().resume);save();}else if(state.mode==='paused')activate();}
-function toggleMute(){state.muted=sound.mute();state.soundFlash=1.3;$('sound').textContent=state.muted?'SOUND OFF':'SOUND ON';$('sound').setAttribute('aria-label',state.muted?'Unmute audio':'Mute audio');}
-$('sound').onclick=toggleMute;$('language').onclick=()=>{state.lang=state.lang==='en'?'zh':'en';updateLabels();if(state.mode==='menu')menu();else if(state.mode==='paused')card(text().pause,text().pauseCopy,text().resume);else if(state.mode==='won')card(text().end,text().endCopy,text().retry,text().endHint);save();};
-$('restart').onclick=()=>{state.mode='menu';saved=null;state.floor=0;setupFloor();state.night=true;state.phaseMix=1;state.camera=260;state.player.x=580;menu();save();};
-function shift(){if(state.mode!=='playing'||shiftCooldown>0||exitTimer>=0)return;state.night=!state.night;shiftCooldown=.35;state.shifts++;state.flash=1;sound.effect('shift');sound.setPhase(state.night);updateLabels();for(let i=0;i<12;i++)state.particles.push({x:state.player.x+7+Math.sin(i*2.4)*25,y:state.player.y+12+Math.cos(i*2.4)*20,vx:Math.sin(i)*8,vy:-12,life:.65,color:i%2?'#adb9a0':'#dec18a',size:2});}
-$('shift-button').onclick=()=>{shift();canvas.focus({preventScroll:true});};
-function interact(){if(state.mode!=='playing'||exitTimer>=0)return;const p=state.player;if(p.x>1305&&p.grounded){if(state.items.every(i=>i.got)){exitTimer=0;sound.nearSilence();keys.clear();}else notify(text().need);}else if(state.floor===1&&p.x>900&&p.x<1100)notify(state.lang==='zh'?'GARY · 周一回来。午饭放门口就好。':'GARY · Back Monday. Leave the lunch by the door.');}
-function inputDown(code,repeat=false){if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','ShiftLeft','ShiftRight','Tab'].includes(code)&&document.activeElement===canvas){/* handled below */}if(code==='KeyM'&&!repeat)toggleMute();if(code==='Escape'&&!repeat)setPause();if(state.mode==='playing'){keys.add(code);if((code==='Space'||code==='ArrowUp'||code==='KeyW')&&!repeat)jumpPressed=true;if((code==='ShiftLeft'||code==='ShiftRight'||code==='KeyX')&&!repeat)shift();if((code==='KeyE'||code==='ArrowDown')&&!repeat)interact();}}
-window.addEventListener('keydown',e=>{if(e.target instanceof HTMLInputElement||e.target instanceof HTMLTextAreaElement)return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space','ShiftLeft','ShiftRight'].includes(e.code))e.preventDefault();inputDown(e.code,e.repeat);});
-window.addEventListener('keyup',e=>{keys.delete(e.code);if(['Space','ArrowUp','KeyW'].includes(e.code))jumpReleased=true;});
-for(const b of document.querySelectorAll('[data-key]')){const release=e=>{e.preventDefault();keys.delete(b.dataset.key);if(b.dataset.key==='Space')jumpReleased=true;};b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);inputDown(b.dataset.key);});b.addEventListener('pointerup',release);b.addEventListener('pointercancel',release);}
-window.addEventListener('blur',()=>{keys.clear();jumpPressed=false;jumpReleased=true;sound.setFocus(false);if(state.mode==='playing')setPause();});window.addEventListener('focus',()=>sound.setFocus(true));document.addEventListener('visibilitychange',()=>{sound.setFocus(!document.hidden);if(document.hidden&&state.mode==='playing')setPause();});
-function particles(x,y,color,count=8){for(let i=0;i<count;i++)state.particles.push({x:x+7,y,vx:Math.cos(i*1.8)*23,vy:-12-i*3,life:.5+i*.025,color,size:i%3===0?3:2});}
-function die(){state.deaths++;sound.effect('death');particles(state.player.x,state.player.y+20,'#d8b789',12);const x=state.player.checkpoint;state.player=createPlayer(x);state.night=false;sound.setPhase(false);updateLabels();state.flash=.5;notify(text().death,3.5);}
-function finish(){sound.effect('door');state.transition=0;completionTimer=.75;}
-function tick(dt){state.time+=dt;state.flash=Math.max(0,state.flash-dt*4);state.soundFlash=Math.max(0,state.soundFlash-dt);state.messageTimer=Math.max(0,state.messageTimer-dt);shiftCooldown=Math.max(0,shiftCooldown-dt);const diff=state.night?1:0;state.phaseMix+=Math.sign(diff-state.phaseMix)*Math.min(Math.abs(diff-state.phaseMix),dt/.18);
- if(state.mode==='playing'){
-  if(completionTimer>0){completionTimer-=dt;state.transition=1-completionTimer/.75;if(completionTimer<=0){if(state.floor===2){state.mode='won';card(text().end,text().endCopy,text().retry,text().endHint);sound.menu=true;sound.setPhase(true);save();}else{state.mode='between';card(text().cards[state.floor],state.lang==='zh'?'电梯慢慢上升。<br>还有一些小事等着你。':'The elevator creaks upward.<br>A few small things are still waiting.',text().next);save();}state.transition=0;}return;}
-  if(exitTimer>=0){exitTimer+=dt;if(exitTimer>=.3){exitTimer=-1;finish();}return;}
-  let p=state.player;const out=stepPlayer(p,{left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),jump:jumpPressed,release:jumpReleased},state.platforms,state.night,dt);jumpPressed=false;jumpReleased=false;
-  if(out.jump)sound.effect('jump');if(out.land){sound.effect('land',out.fall);particles(p.x,p.y+28,'#8a9d89',5);}if(p.grounded&&Math.abs(p.vx)>10){footDistance+=Math.abs(p.vx)*dt;if(footDistance>17){footDistance=0;sound.effect('step',1,p.surface);}}
-  for(let i=0;i<state.items.length;i++){const item=state.items[i];if(!item.got&&intersects(p,item.x,item.y,9)){item.got=true;sound.effect('collect');particles(item.x,item.y,'#e6c181',12);notify(text().item[state.floor][i],4);save();}}
-  if(p.y>290)die();
-  if(p.x>405&&!stairHint){stairHint=true;notify(text().stair,7);}
-  if(p.x>825&&!hazardHint){hazardHint=true;notify(text().hazard,6);}
-  // Sleeping at night; steam / copier rollers / roof fan share this footprint.
-  if(!state.night&&p.x>881&&p.x<912&&p.y+28>215&&Math.sin(state.time*2)>.1)die();
-  sound.phoneNear=state.floor===1&&p.x>940&&p.x<1060;
-  if(p.x>1305&&state.items.every(i=>i.got)&&state.messageTimer<=0)notify(text().exit,1);
- }
- for(const p of state.particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=35*dt;}state.particles=state.particles.filter(p=>p.life>0);
- if(state.mode!=='menu'){const target=Math.max(0,Math.min(970,state.player.x-180));state.camera+=(target-state.camera)*Math.min(1,dt*6);}
+import {Art} from './art.js';
+import {Sound} from './audio.js';
+import {Simulation,FIXED_DT} from './simulation.js';
+import {loadSave,storeSave,backupBeforeRestart,freshSave} from './save.js';
+import {STORY} from './story.js';
+import {CHAPTERS} from './chapters.js';
+const $=id=>document.getElementById(id),canvas=$('game'),art=new Art(canvas),sound=new Sound();
+let storage;try{storage=window.localStorage;}catch{}
+let loaded=storage?loadSave(storage):{data:freshSave(),warnings:['storage-unavailable'],readOnly:true};
+let state=new Simulation(loaded.data),keys=new Set(),edges={},lastTime=null,accumulator=0,starting=false;
+const text=()=>STORY[state.lang];
+function clearInput(){keys.clear();edges={};}
+function persist(){state.persist();if(loaded.readOnly)return;try{storeSave(storage,state.progress);}catch(e){state.emit('save-error',{name:e.name});}}
+function notify(message,seconds=5){state.message=message;state.messageTimer=seconds;$('status').textContent=message;}
+function labels(){const t=text();document.documentElement.lang=state.lang;document.title=t.title;state.short=t.short[state.floor];state.shortZh=STORY.zh.short[state.floor];$('floor-label').textContent=`0${state.floor+1} / ${t.floors[state.floor]}${state.expanded?' · '+(state.sector+1)+'/6':''}`;$('phase-label').textContent=state.lang==='zh'?(state.night?'夜 · 事故后 18:00':'日 · 事故前 17:59'):(state.night?'NIGHT · AFTER 18:00':'DAY · BEFORE 17:59');$('language').textContent=state.lang==='en'?'中文':'EN';$('tagline').innerHTML=state.lang==='en'?'The shift never ended.<br>Leave a door for the last person.':'大楼没有下班。<br>给最后一个人留门。';$('under-title').textContent=state.lang==='zh'?'不是杀光所有鬼，是让所有人离开。':'Not every shadow is your enemy.';$('under-copy').textContent=t.hint;$('aside-copy').textContent=state.lang==='zh'?'日：17:59 的记忆。夜：18:00 的废墟。':'Day: a memory. Night: what remained.';$('sound').textContent=sound.muted?'SOUND OFF':'SOUND ON';$('sound').setAttribute('aria-pressed',String(sound.muted));}
+function card(title,body,button,hint=''){ $('overlay').classList.remove('hidden');$('card-title').innerHTML=title;$('card-copy').innerHTML=body;$('start').textContent=button;$('start-hint').textContent=hint;}
+function showCard(){const t=text();if(state.mode==='menu')card(t.introTitle,t.introCopy,state.progress.checkpointId?t.resume:t.start,t.hint);else if(state.mode==='paused')card(t.pause,t.pauseCopy,t.resume);else if(state.mode==='between')card(t.floors[state.floor],t.between,t.next);else if(state.mode==='won')card(state.ending==='complete'?t.completeTitle:t.normalTitle,state.ending==='complete'?t.completeCopy:t.normalCopy,t.replay);}
+function drain(){for(const event of state.drain()){
+ if(event.type==='sound'){if(event.position!=null)sound.effectAt(event.name,event.position,state.player.x,event.amount??1,event.surface??'concrete');else sound.effect(event.name,event.amount??1,event.surface??'concrete');}
+ else if(event.type==='save')persist();
+ else if(event.type==='clear-input')clearInput();
+ else if(event.type==='shift'){sound.setPhase(state.night);sound.effect('shift');labels();}
+ else if(event.type==='shift-rejected'&&event.reason!=='locked')notify(text().shiftRejected,1.2);
+ else if(event.type==='death'){clearInput();sound.effect(event.kind==='ghost'?'ghost':event.kind==='fall'?'fallDeath':'death');notify(event.kind==='ghost'?text().ghost:text().death,3);}
+ else if(event.type==='checkpoint'){sound.effect('checkpoint');notify(text().lamp,2.5);}
+ else if(event.type==='task'){sound.effect(state.floor===0?'valve':'collect');notify(state.floor===2?text().roofTasks[event.index]:text().task[state.floor][event.index],7);}
+ else if(event.type==='evidence'){sound.effect('evidence');notify(text().evidence[event.id],8);}
+ else if(event.type==='tutorial')notify(text().tutorial,7);
+ else if(event.type==='scene-beat'){if(event.id==='phone'){if(event.beat===0)sound.effect('phone');else sound.stopPhone();}else if(['fire-door','lunchbox'].includes(event.id))sound.effect(event.beat===0?'handle':'doorOpen');else if(['reservoir','plants','coolant'].includes(event.id))sound.effect('water');else if(event.beat===0)sound.effect('knock');}
+ else if(event.type==='pursuit-warning'){sound.effect('warningBell');notify(state.lang==='zh'?'预警：出口在右侧。留门，不要留在走廊。':'Warning: exit to the right. Leave the door, not yourself in the corridor.',5);}
+ else if(event.type==='need-work')notify(state.lang==='zh'?'先完成本区交接，门闩才会放行。':'Complete this section’s work to release its door.',3);
+ else if(event.type==='work')sound.effect('checkpoint');
+ else if(event.type==='sector'){sound.setFloor(state.floor);labels();notify(state.lang==='zh'?state.sectorData.spec.zh:state.sectorData.spec.en,3);}
+ else if(event.type==='route-hint')notify(text().upperRoute,7);
+ else if(event.type==='light'){sound.effect('checkpoint');notify(text().light,4);}
+ else if(event.type==='need')notify(text().need,3);
+ else if(event.type==='floor'){sound.setFloor(state.floor);labels();notify(text().story[state.floor],8);}
+ else if(['between','ending'].includes(event.type)){sound.menu=true;clearInput();showCard();}
+ }}
+async function activate(){
+ if(starting)return;starting=true;
+ try{await sound.start();}catch(e){notify(state.lang==='zh'?'音频暂不可用，仍可继续游戏。':'Audio unavailable; play can continue.',3);}
+ try{
+  if(state.mode==='won'){showVisits();return;}
+  const from=state.mode;if(from==='paused')state.resume();else state.start();clearInput();accumulator=0;lastTime=null;sound.menu=false;sound.setPhase(state.night);sound.setFloor(state.floor);sound.setVolumes(state.progress.settings);$('overlay').classList.add('hidden');canvas.focus({preventScroll:true});labels();if(from==='menu')notify(text().story[state.floor],9);drain();
+ }finally{starting=false;}
 }
-function frame(timestamp){const dt=Math.min((timestamp-lastTime)/1000||.016,.04);lastTime=timestamp;tick(dt);art.render(state,dt);requestAnimationFrame(frame);}requestAnimationFrame(frame);
-// Read-only diagnostics, useful to document verification without changing game state.
-window.lastLight={snapshot:()=>({floor:state.floor,phase:state.night?'night':'day',mode:state.mode,player:{...state.player},items:state.items.map(i=>({...i})),deaths:state.deaths,shifts:state.shifts,audio:sound.ctx?{state:sound.ctx.state,muted:sound.muted,focus:sound.focus,recentEffects:[...sound.audit]}:null})};
+function pause(){clearInput();if(state.pause()){accumulator=0;persist();showCard();}}
+function toggleMute(){sound.mute();state.muted=sound.muted;state.soundFlash=1;labels();}
+$('start').onclick=activate;$('sound').onclick=toggleMute;$('settings').ontoggle=()=>{if($('settings').open)pause();};
+$('language').onclick=()=>{state.lang=state.lang==='en'?'zh':'en';labels();persist();showCard();};
+$('restart').onclick=()=>{try{if(storage)backupBeforeRestart(storage);}catch{notify('Backup failed; restart cancelled.',3);return;}state=new Simulation(freshSave());clearInput();sound.setPhase(false);labels();showCard();persist();};
+$('shift-button').onclick=()=>{if(state.mode==='playing')edges.shift=true;canvas.focus({preventScroll:true});};
+function journal(){pause();const t=text();$('journal-title').textContent=t.journal;const list=$('journal-entries');list.replaceChildren();for(const id of state.progress.evidence){const p=document.createElement('p');p.textContent=t.evidence[id]||id;list.append(p);}for(const event of state.progress.events.filter(x=>x==='record-corrected')){const p=document.createElement('p');p.textContent=t.task[1][1];list.append(p);}for(let f=0;f<3;f++)for(let i=0;i<3;i++)if(state.progress.chapterProgress[f]?.[i]){const p=document.createElement('p');p.textContent=`${t.floors[f]} · ${f===2?t.roofTasks[i]:t.task[f][i]}`;list.append(p);}if(!list.childNodes.length)list.textContent=t.noEntries;$('journal-dialog').showModal();}
+$('journal').onclick=journal;$('journal-close').onclick=()=>{$('journal-dialog').close();};
+function showVisits(){const list=$('visit-entries');list.replaceChildren();for(let floor=0;floor<3;floor++){const unlocked=Math.max(state.floor,state.events.includes('chapter-1-complete')?2:state.events.includes('chapter-0-complete')?1:0);if(floor>unlocked&&!state.progress.finished)continue;const b=document.createElement('button');b.textContent=`${floor+1} · ${text().floors[floor]}`;b.onclick=()=>{state.loadFloor(floor);state.mode='playing';state.progress.finished=false;$('visit-dialog').close();$('overlay').classList.add('hidden');clearInput();sound.menu=false;sound.setFloor(floor);labels();persist();canvas.focus();};list.append(b);if(state.expanded)for(let sector=0;sector<6;sector++){const spec=CHAPTERS[floor][sector];if(!state.progress.visitedSectors.includes(`${floor}/${spec.id}`))continue;const sub=document.createElement('button');sub.textContent=`↳ ${sector+1} · ${state.lang==='zh'?spec.zh:spec.en}`;sub.onclick=()=>{state.loadSector(floor,sector);state.mode='playing';state.progress.finished=false;$('visit-dialog').close();$('overlay').classList.add('hidden');clearInput();sound.menu=false;sound.setFloor(floor);labels();persist();canvas.focus();};list.append(sub);}}$('visit-dialog').showModal();}
+$('chapters').onclick=()=>{pause();showVisits();};$('visit-close').onclick=()=>{$('visit-dialog').close();};
+for(const key of ['master','music','sfx']){const slider=$(`volume-${key}`);slider.value=state.progress.settings[key];slider.oninput=()=>{state.progress.settings[key]=Number(slider.value);sound.setVolumes(state.progress.settings);persist();};}
+$('reduced-effects').checked=state.reducedEffects;$('reduced-effects').onchange=e=>{state.reducedEffects=e.target.checked;state.progress.settings.reducedEffects=state.reducedEffects;persist();};
+function inputDown(code,repeat=false){
+ if(code==='KeyM'&&!repeat)toggleMute();if(code==='KeyJ'&&!repeat){journal();return;}
+ if(code==='Escape'&&!repeat){if(state.mode==='paused')activate();else pause();return;}
+ if(state.mode!=='playing')return;
+ if(state.player.lifeState==='dying'){if(['Space','KeyE'].includes(code)&&state.deaths>1)state.player.lifeTime=Math.max(state.player.lifeTime,.85);return;}
+ if(state.scene){if(['KeyE','ArrowDown','Space'].includes(code)&&!repeat)edges.interact=true;return;}
+ if(!['alive','hurt'].includes(state.player.lifeState))return;
+ keys.add(code);if(!repeat){if(['Space','ArrowUp','KeyW'].includes(code))edges.jump=true;if(['ShiftLeft','ShiftRight','KeyX'].includes(code))edges.shift=true;if(['KeyE','ArrowDown'].includes(code))edges.interact=true;}
+}
+window.addEventListener('keydown',e=>{if(e.target.closest?.('dialog,input,select,textarea,details'))return;if(document.activeElement!==canvas&&state.mode!=='playing'&&!['Escape','KeyM','KeyJ'].includes(e.code))return;if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();inputDown(e.code,e.repeat);});
+window.addEventListener('keyup',e=>{keys.delete(e.code);if(['Space','ArrowUp','KeyW'].includes(e.code))edges.release=true;});
+for(const b of document.querySelectorAll('[data-key]')){const up=e=>{e.preventDefault();keys.delete(b.dataset.key);if(b.dataset.key==='Space')edges.release=true;};b.addEventListener('pointerdown',e=>{e.preventDefault();b.setPointerCapture(e.pointerId);inputDown(b.dataset.key);});b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);}
+window.addEventListener('blur',()=>{pause();sound.setFocus(false);lastTime=null;accumulator=0;});window.addEventListener('focus',()=>sound.setFocus(!document.hidden));document.addEventListener('visibilitychange',()=>{sound.setFocus(!document.hidden);if(document.hidden)pause();lastTime=null;accumulator=0;});
+function frame(timestamp){const elapsed=lastTime==null?0:Math.min(.1,(timestamp-lastTime)/1000);lastTime=timestamp;
+ if(state.mode==='playing'){accumulator+=elapsed;let ticks=0;while(accumulator>=FIXED_DT&&ticks++<12){const input={left:keys.has('ArrowLeft')||keys.has('KeyA'),right:keys.has('ArrowRight')||keys.has('KeyD'),walk:keys.has('KeyC'),...edges};edges={};state.step(input);drain();accumulator-=FIXED_DT;}}else accumulator=0;
+ sound.setNarrative?.({sector:state.sector||0,scene:state.scene?.id||'',pursuit:!!state.pursuit?.active,resolution:state.scene?.id==='ending-complete'||state.mode==='won'&&state.ending==='complete'});sound.setTension(state.pursuit?.active||state.ghosts.some(g=>g.state==='chase')?1:0);art.render(state,elapsed);requestAnimationFrame(frame);
+}
+labels();showCard();requestAnimationFrame(frame);
+window.lastLight={snapshot:()=>({...state.snapshot(),warnings:loaded.warnings.slice(),audio:sound.ctx?{state:sound.ctx.state,muted:sound.muted,focus:sound.focus,voices:sound.voices,recentEffects:sound.audit.slice(-15)}:null})};

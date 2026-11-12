@@ -1,6 +1,8 @@
 # Game Off 2026 submission receipt
 
-Status: **Submitted successfully.**
+Status of the **original archived build**: **Submitted successfully.**
+
+The local 2.0.0-dev.1 development revision has NOT been uploaded or submitted. This receipt is not verification or release authorization for that revision.
 
 - Entrant: Tomhao on itch.io; Tomhao10225101490 on GitHub.
 - Game: LAST LIGHT — One More Shift.

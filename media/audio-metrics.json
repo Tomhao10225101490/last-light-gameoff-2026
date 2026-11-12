@@ -1,11 +1,20 @@
 {
-  "duration": 32,
+  "duration": 136,
   "sampleRate": 44100,
-  "peak": 0.6399021744728088,
-  "peakDb": -3.8777282807582796,
-  "rms": 0.028417032940886544,
+  "compositionPeriodSeconds": 120.32,
+  "coverage": "one full 120.32s arrangement cycle, three chapter registers, all six sector variations/chapter, day/night, narrative ducking/resolution, pursuit/warning, water, doors, deaths, revival, tasks and evidence",
+  "peak": 0.4792194366455078,
+  "peakDb": -6.389311514515773,
+  "rms": 0.020377607264780776,
   "clippedSamples": 0,
   "nonFiniteSamples": 0,
-  "firstInvalidSeconds": -0.000022675736961451248,
-  "subjectiveListening": "Not verified by the agent; requires headphone review."
+  "firstInvalidSeconds": null,
+  "maxAdjacentSampleDelta": 0.25188305974006653,
+  "compositionBoundarySamples": [
+    {
+      "seconds": 120.32,
+      "adjacentSampleDelta": 0.0019131990848109126
+    }
+  ],
+  "subjectiveListening": "NOT LISTENED: numeric render checks do not establish perceived quality or a seamless loop."
 }

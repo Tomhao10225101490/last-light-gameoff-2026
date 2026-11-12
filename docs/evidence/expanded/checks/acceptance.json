@@ -1,0 +1,88 @@
+{
+  "status": "functional gates verified; subjective listening and external-device review pending",
+  "runtimeSha256": {
+    "art.js": "fb4ce466f92fcc692aae53a7124ed8bd744d7fb976eaca95db7b75507d278894",
+    "audio.js": "d56d2aa84b7d98c106940f4d8da31f035cbcee221b38e564c3187daa4e4899c6",
+    "chapters.js": "496a4d0c40eeda808f69076dbf2c02700df04166a6282d3bb46e83e81678b44d",
+    "cinema.js": "a426fd2409f3af5f150e189c4fa92aba8f01718f7266bd361dc2723529c10b63",
+    "core.js": "dc516ba215a765b5fe6fa5731914e35335cd3a467d5ac4aaad119ec0d9b5739f",
+    "doors.js": "687b8595dd3e4d3282a94a685b4eadb5cff1c5597e48cdd644b48aafd796a49b",
+    "enemies.js": "c060aa1c43dcfa9031bcb2c18e6f0cb8fcf3676006590509ddc667ea676a0ab0",
+    "game.js": "9a9a10ebd1d55bc080cbbbb401cf2ea2bcd8920701c76fff7ccafb8dc395da88",
+    "index.html": "32f52e9f0d176bb960fff2ffbdf6e1758df4c334a3f94063d36cd12585e13879",
+    "level-data.js": "8007fd6966938e1de38a06708f1ae479879dec62b0f3e9d9000aa059e49b63a7",
+    "phase.js": "e879df18d6e0870dc5bdffe47133bb1b640be4573872e84668b881a664842ac0",
+    "player-state.js": "7922ff15da46f9456f4a1f2c2ddc440e5e37ece459945a727bbc849e31de3fae",
+    "save.js": "e7600e9b602fb993a3fd8ddee064936126dec9753f7ad5a7395325cc01eddce1",
+    "sector-art.js": "a5d44512c68997f4f55d51c39786239cff6ac5cfb3b1d2dc5ea5f563c43ff16d",
+    "simulation.js": "c8b5dbd155d19972acc5ed8d686225aa4ac67d14ed78f287ce80b932aeebad99",
+    "spatial.js": "74da7c64af50aa83de6d4f8f246af749e03e63d027b4a16fdd018da2ffbb447c",
+    "story.js": "14e83426ffa90e3b12440e2247491c08e0dc998bb24baf687d51eb2f75afb88d",
+    "style.css": "afa93fa2486e18db9aa7e85efda80e62b23c6a7a89e2004fea83e88009a1ccf1",
+    "world.js": "5d142e43fb295b4b1d7f7304b7e63d399543d37edea6ffe72d8eaccbbf5ae642"
+  },
+  "findings": [
+    {
+      "name": "normal",
+      "path": "docs/evidence/expanded/normal-rc1-ready/attempt.json",
+      "kind": "whole expanded-game keyboard test",
+      "deaths": 0,
+      "sections": 18,
+      "evidence": 0,
+      "seconds": 433.397
+    },
+    {
+      "name": "complete",
+      "path": "docs/evidence/expanded/complete-rc1/attempt.json",
+      "kind": "whole expanded-game keyboard test",
+      "deaths": 0,
+      "sections": 18,
+      "evidence": 6,
+      "seconds": 464.216
+    },
+    {
+      "name": "revisit",
+      "path": "docs/evidence/expanded/revisit-rc1/report.json",
+      "checks": [
+        "initial-restored-state",
+        "finished-reload",
+        "archive-revisit",
+        "journal-zh",
+        "reload-resume"
+      ]
+    }
+  ],
+  "space": [
+    {
+      "chapter": 1,
+      "screenRatio": 16,
+      "standingSpaceRatio": 19.989404641775984,
+      "occupiedScreens": 144
+    },
+    {
+      "chapter": 2,
+      "screenRatio": 16,
+      "standingSpaceRatio": 19.563501849568436,
+      "occupiedScreens": 144
+    },
+    {
+      "chapter": 3,
+      "screenRatio": 14.4,
+      "standingSpaceRatio": 18.96745070087907,
+      "occupiedScreens": 144
+    }
+  ],
+  "audio": {
+    "seconds": 136,
+    "peakDb": -6.389311514515773,
+    "clippedSamples": 0,
+    "nonFiniteSamples": 0,
+    "subjectiveListening": "NOT LISTENED: numeric render checks do not establish perceived quality or a seamless loop."
+  },
+  "unverified": [
+    "subjective headphone/speaker listening",
+    "physical touch-device play",
+    "full Firefox/Safari run",
+    "final external art/design quality sign-off"
+  ]
+}
