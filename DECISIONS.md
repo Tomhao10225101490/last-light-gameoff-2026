@@ -21,3 +21,4 @@
 - No public upload, competition submission replacement, trailer modification or destructive Git operation is authorized by routine local implementation work.
 
 - 2026-11-12: Packaging is now fail-closed on verify-evidence.mjs rather than relying on an unenforced documentation instruction. RC metadata describes current functional verification without inventing subjective audio sign-off.
+- Primary release is the public itch RC and GitHub commit. Do not represent the stalled optional Sites mirror as current. Preserve numeric and subjective QA distinctions in release notes.

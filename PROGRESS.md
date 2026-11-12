@@ -33,3 +33,5 @@ These review limits do not negate the implemented expansion or successful whole-
 ## Review / release preparation · 2026-11-12
 
 Re-ran 52 Node tests, syntax checks and exact-runtime evidence validation: passed. Native Chrome confirmed legacy saved-game resume, phase hotkey and pause. Fixed packaging to actually run the evidence gate, replace stale dev.1 acceptance metadata and preserve versioned manifests. Current audiovisual/physical-device limitations remain explicit. User authorized GitHub and platform publication in this session; release confirmation still requires observing remote results.
+
+Release result: GitHub main f5119861069825df5ce29b859a2ca11d5d5089c6 published. itch.io selected last-light-2.0.0-rc.1-html5.zip as the browser build, retained original archive, and native Chrome started/paused the fresh expanded build from html-classic.itch.zone/html/20459390/. The optional Sites backup sync stalled at Git network transfer and was cancelled; no updated Sites deployment is claimed. All 18 online JS/CSS assets matched local bytes; itch modifies index.html for its hosting wrapper.
